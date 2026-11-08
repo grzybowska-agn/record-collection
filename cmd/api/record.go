@@ -27,7 +27,7 @@ type Record struct {
 	ReleaseType     ReleaseType
 	SizeInches      VinylSize
 	DiscCount       int
-	PressingYear    int
+	PressingYear    *int
 	PressingLabel   string
 	PressingCountry string
 	IsReissue       bool

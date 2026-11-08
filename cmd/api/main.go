@@ -29,9 +29,17 @@ func main() {
 
 	http.HandleFunc("POST /records", app.createRecord)
 	http.HandleFunc("GET /records", app.getRecords)
+	http.HandleFunc("DELETE /records/{id}", app.deleteRecordHandler)
 
-	log.Println("Server listening on http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	addr := ":" + port
+
+	log.Printf("Server listening on http://localhost:%s", port)
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Println("Server stopped:", err)
 	}
 }

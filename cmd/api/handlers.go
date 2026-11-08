@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type application struct {
@@ -18,6 +19,11 @@ func (app *application) createRecord(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if err := validateRecord(record); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -49,4 +55,25 @@ func (app *application) getRecords(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(collection); err != nil {
 		log.Println("Failer to write response:", err)
 	}
+}
+
+func (app *application) deleteRecordHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.Error(w, "Invalid record ID", http.StatusBadRequest)
+	}
+
+	deleted, err := app.deleteRecord(r.Context(), id)
+	if err != nil {
+		log.Println("Failed to delete record:", id)
+		http.Error(w, "Could not delete record", http.StatusInternalServerError)
+		return
+	}
+
+	if !deleted {
+		http.Error(w, "Record not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

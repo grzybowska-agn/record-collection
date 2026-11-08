@@ -70,3 +70,17 @@ func (app *application) listRecords(ctx context.Context) ([]Record, error) {
 
 	return records, nil
 }
+
+func (app *application) deleteRecord(ctx context.Context, id int) (bool, error) {
+	result, err := app.db.ExecContext(ctx, "DELETE FROM records WHERE id = $1", id)
+	if err != nil {
+		return false, err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
