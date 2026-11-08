@@ -6,11 +6,19 @@ import (
 	"context"
 	"time"
 
+	"fmt"
+	"os"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func openDatabase() (*sql.DB, error) {
-	db, err := sql.Open("pgx", "host=localhost port=5432 user=agnieszkagrzybowska dbname=record_collection sslmode=disable")
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		return nil, fmt.Errorf("DATABASE_URL is required")
+	}
+
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}

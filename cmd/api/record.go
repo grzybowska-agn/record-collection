@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type ReleaseType string
 
 const (
@@ -29,4 +31,5 @@ type Record struct {
 	PressingLabel   string
 	PressingCountry string
 	IsReissue       bool
+	CreatedAt       time.Time
 }

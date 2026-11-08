@@ -3,9 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
+		log.Fatal("Could not load .env:", err)
+	}
+
 	db, err := openDatabase()
 	if err != nil {
 		log.Fatal(err)

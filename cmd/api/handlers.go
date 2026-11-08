@@ -21,11 +21,12 @@ func (app *application) createRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	record.ID = nextID
-	nextID++
-	records[record.ID] = record
-	mu.Unlock()
+	err = app.insertRecord(r.Context(), &record)
+	if err != nil {
+		log.Println("Failed to insert record:", err)
+		http.Error(w, "Could not create record", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("ContentType", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -38,12 +39,11 @@ func (app *application) createRecord(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getRecords(w http.ResponseWriter, r *http.Request) {
-	mu.Lock()
-	collection := make([]Record, 0, len(records))
-	for _, record := range records {
-		collection = append(collection, record)
+	collection, err := app.listRecords(r.Context())
+	if err != nil {
+		log.Println("Failed to list records:", err)
+		http.Error(w, "Could not load records", http.StatusInternalServerError)
 	}
-	mu.Unlock()
 
 	w.Header().Set("Content/Type", "application/json")
 	if err := json.NewEncoder(w).Encode(collection); err != nil {
