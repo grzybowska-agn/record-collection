@@ -4,25 +4,33 @@ A vinyl collection API built while learning Go and PostgreSQL.
 
 ## Current state
 
-- Health endpoint: GET /health
-- Create record: POST /records
-- List records: GET /records
-- Records are currently stored in memory and lost on restart.
-- PostgreSQL schema is saved in migrations/001_create_records.sql.
-- The application connects to PostgreSQL at startup.
-- Database connection settings are currently local to the developer's machine.
+- GET /health — checks that the API is running.
+- POST /records — creates a record in PostgreSQL.
+- GET /records — lists records, newest first.
+- Records persist across application restarts.
+- Each record includes an automatically generated ID and creation timestamp.
+- Database schema changes are stored in migrations/.
+- Configuration is read from environment variables, with local .env support.
 
-## Run
+## Run locally
 
-Start PostgreSQL:
-brew services start postgresql@17
+1. Start PostgreSQL:
+   brew services start postgresql@17
 
-Start the API:
-go run .
+2. Copy the example configuration:
+   cp .env.example .env
 
-## Next session
+3. Edit .env with your local PostgreSQL connection details.
 
-1. Replace in-memory record creation with a PostgreSQL INSERT.
-2. Replace in-memory listing with a SELECT.
-3. Verify that records survive an application restart.
-4. Add input validation, then update and delete endpoints.
+4. Start the API from the project root:
+   go run ./cmd/api
+
+The API listens on http://localhost:8080.
+
+## Next steps
+
+- Read the server port from PORT.
+- Add request validation.
+- Add update and delete endpoints.
+- Protect write endpoints before public deployment.
+- Deploy the API and PostgreSQL database.
