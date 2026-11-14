@@ -1,8 +1,14 @@
 package main
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 func (app *application) insertRecord(ctx context.Context, record *Record) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	query := `
 		INSERT INTO records (
 			artist, title, original_year, cover_url,
@@ -30,6 +36,9 @@ func (app *application) insertRecord(ctx context.Context, record *Record) error 
 }
 
 func (app *application) listRecords(ctx context.Context) ([]Record, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	query := `
 		SELECT id, artist, title, original_year,
 				COALESCE(cover_url, ''),
@@ -72,6 +81,9 @@ func (app *application) listRecords(ctx context.Context) ([]Record, error) {
 }
 
 func (app *application) deleteRecord(ctx context.Context, id int) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	result, err := app.db.ExecContext(ctx, "DELETE FROM records WHERE id = $1", id)
 	if err != nil {
 		return false, err
@@ -86,6 +98,9 @@ func (app *application) deleteRecord(ctx context.Context, id int) (bool, error) 
 }
 
 func (app *application) updateRecord(ctx context.Context, record *Record) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	query := `
 		UPDATE records
 		SET artist = $1,
@@ -112,6 +127,9 @@ func (app *application) updateRecord(ctx context.Context, record *Record) error 
 }
 
 func (app *application) findRecord(ctx context.Context, id int) (Record, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	query := `
 		SELECT id, artist, title, original_year,
 			COALESCE(cover_url, ''),

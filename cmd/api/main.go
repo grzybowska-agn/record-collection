@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -47,8 +51,46 @@ func main() {
 
 	addr := ":" + port
 
-	log.Printf("Server listening on http://localhost:%s", port)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Println("Server stopped:", err)
+	server := &http.Server{
+		Addr:              addr,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
+
+	shutdownCtx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
+	log.Printf("Server listening on http://localhost:%s", port)
+
+	serverErrors := make(chan error, 1)
+
+	go func() {
+		serverErrors <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverErrors:
+		log.Println("Server stopped:", err)
+
+	case <-shutdownCtx.Done():
+		stop()
+		log.Println("Shutting down server")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			log.Println("Graceful shutdown failed:", err)
+			if err := server.Close(); err != nil {
+				log.Println("Failed to close server:", err)
+			}
+		}
+	}
+
 }
