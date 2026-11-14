@@ -14,7 +14,7 @@ func TestValidateRecordRejectsInvalidSize(t *testing.T) {
 
 	err := validateRecord(record)
 	if err == nil {
-		t.Fatal("Expected an error for an invalid size")
+		t.Fatal("expected an error for an invalid size")
 	}
 }
 
@@ -30,6 +30,6 @@ func TestValidateRecordAcceptsValidRecord(t *testing.T) {
 
 	err := validateRecord(record)
 	if err != nil {
-		t.Fatalf("Expected a valid record, got: %v", err)
+		t.Fatalf("expected a valid record, got: %v", err)
 	}
 }

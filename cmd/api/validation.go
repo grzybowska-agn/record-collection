@@ -8,27 +8,27 @@ import (
 
 func validateRecord(record Record) error {
 	if strings.TrimSpace(record.Artist) == "" {
-		return fmt.Errorf("Artist is required")
+		return fmt.Errorf("artist is required")
 	}
 
 	if strings.TrimSpace(record.Title) == "" {
-		return fmt.Errorf("Title is required")
+		return fmt.Errorf("title is required")
 	}
 
 	switch record.SizeInches {
 	case Size7Inch, Size10INch, Size12Inch:
 	default:
-		return fmt.Errorf("Size must be 7, 10, or 12 inches")
+		return fmt.Errorf("size must be 7, 10, or 12 inches")
 	}
 
 	switch record.ReleaseType {
 	case ReleaseTypeEP, ReleaseTypeLP, ReleaseTypeSingle:
 	default:
-		return fmt.Errorf("Release type must be LP, EP, or Single")
+		return fmt.Errorf("release type must be LP, EP, or Single")
 	}
 
 	if record.DiscCount < 1 {
-		return fmt.Errorf("Disc count must be at least 1")
+		return fmt.Errorf("disc count must be at least 1")
 	}
 
 	maxYear := time.Now().Year() + 1

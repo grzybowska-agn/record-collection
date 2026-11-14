@@ -21,16 +21,24 @@ func main() {
 
 	log.Printf("Connected to PostgreSQL")
 
-	app := application{db: db}
+	apiToken := os.Getenv("API_TOKEN")
+	if apiToken == "" {
+		log.Fatal("API_TOKEN is required")
+	}
+
+	app := application{
+		db:       db,
+		apiToken: apiToken,
+	}
 
 	http.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 
-	http.HandleFunc("POST /records", app.createRecord)
 	http.HandleFunc("GET /records", app.getRecords)
-	http.HandleFunc("DELETE /records/{id}", app.deleteRecordHandler)
-	http.HandleFunc("PATCH /records/{id}", app.updateRecordHandler)
+	http.HandleFunc("POST /records", app.requireToken(app.createRecord))
+	http.HandleFunc("PATCH /records/{id}", app.requireToken(app.updateRecordHandler))
+	http.HandleFunc("DELETE /records/{id}", app.requireToken(app.deleteRecordHandler))
 
 	port := os.Getenv("PORT")
 	if port == "" {

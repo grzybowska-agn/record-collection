@@ -10,7 +10,8 @@ import (
 )
 
 type application struct {
-	db *sql.DB
+	db       *sql.DB
+	apiToken string
 }
 
 func (app *application) createRecord(w http.ResponseWriter, r *http.Request) {
