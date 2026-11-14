@@ -30,6 +30,7 @@ func main() {
 	http.HandleFunc("POST /records", app.createRecord)
 	http.HandleFunc("GET /records", app.getRecords)
 	http.HandleFunc("DELETE /records/{id}", app.deleteRecordHandler)
+	http.HandleFunc("PATCH /records/{id}", app.updateRecordHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

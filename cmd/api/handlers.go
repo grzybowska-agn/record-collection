@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -76,4 +77,61 @@ func (app *application) deleteRecordHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (app *application) updateRecordHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.Error(w, "Invalid record ID", http.StatusBadRequest)
+		return
+	}
+
+	record, err := app.findRecord(r.Context(), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		http.Error(w, "Record not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Println("Failed to load record:", err)
+		http.Error(w, "Could not load record", http.StatusInternalServerError)
+		return
+	}
+
+	var patch RecordPatch
+
+	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if len(patch) == 0 {
+		http.Error(w, "Provide at least one field to update", http.StatusBadRequest)
+		return
+	}
+
+	if err := applyRecordPatch(&record, patch); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := validateRecord(record); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := app.updateRecord(r.Context(), &record); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Record not found", http.StatusNotFound)
+			return
+		}
+
+		log.Println("Failed to update record:", err)
+		http.Error(w, "Could not update record", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-type", "application/json")
+	if err := json.NewEncoder(w).Encode(record); err != nil {
+		log.Println("Failed to write response:", err)
+	}
 }

@@ -84,3 +84,54 @@ func (app *application) deleteRecord(ctx context.Context, id int) (bool, error) 
 
 	return count > 0, nil
 }
+
+func (app *application) updateRecord(ctx context.Context, record *Record) error {
+	query := `
+		UPDATE records
+		SET artist = $1,
+		 	title = $2,
+			original_year = $3,
+			cover_url = $4,
+			pressing_year = $5,
+			pressing_label = $6,
+			is_reissue = $7,
+			size_inches = $8,
+			release_type = $9,
+			disc_count = $10,
+			pressing_country = $11
+		WHERE id = $12
+		RETURNING created_at
+	`
+	return app.db.QueryRowContext(
+		ctx, query,
+		record.Artist, record.Title, record.OriginalYear,
+		record.CoverURL, record.PressingYear, record.PressingLabel,
+		record.IsReissue, record.SizeInches, record.ReleaseType,
+		record.DiscCount, record.PressingCountry, record.ID,
+	).Scan(&record.CreatedAt)
+}
+
+func (app *application) findRecord(ctx context.Context, id int) (Record, error) {
+	query := `
+		SELECT id, artist, title, original_year,
+			COALESCE(cover_url, ''),
+			pressing_year, COALESCE(pressing_label, ''), is_reissue,
+			size_inches, release_type, disc_count,
+			COALESCE(pressing_country, ''), created_at
+		FROM records
+		WHERE id = $1
+	`
+
+	var record Record
+
+	err := app.db.QueryRowContext(ctx, query, id).Scan(
+		&record.ID, &record.Artist, &record.Title,
+		&record.OriginalYear, &record.CoverURL,
+		&record.PressingYear, &record.PressingLabel,
+		&record.IsReissue, &record.SizeInches,
+		&record.ReleaseType, &record.DiscCount,
+		&record.PressingCountry, &record.CreatedAt,
+	)
+
+	return record, err
+}
